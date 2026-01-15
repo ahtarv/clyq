@@ -6,7 +6,7 @@
 import { Platform } from 'react-native';
 
 const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorDark = '#00F0FF'; // Futuristic Cyan
 
 export const Colors = {
   light: {
@@ -16,14 +16,16 @@ export const Colors = {
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
+    card: '#F0F0F0',
   },
   dark: {
     text: '#ECEDEE',
-    background: '#151718',
+    background: '#050505', // Almost black
     tint: tintColorDark,
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
+    card: '#121212', // Darker card background
   },
 };
 

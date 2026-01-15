@@ -18,7 +18,13 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
-} as IconMapping;
+  'rocket.fill': 'rocket_launch',
+  'chart.bar.fill': 'bar_chart',
+  'square.stack.3d.up.fill': 'dns',
+  'gear': 'settings',
+  'sparkles': 'auto_awesome',
+  'person.fill': 'person',
+};
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
@@ -37,5 +43,5 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  return <MaterialIcons color={color} size={size} name={MAPPING[name] as any} style={style} />;
 }
