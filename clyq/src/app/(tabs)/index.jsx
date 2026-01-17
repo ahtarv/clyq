@@ -8,7 +8,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { endpoints } from "../../utils/config";
+import { useFocusEffect } from "expo-router";
 
 const daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -34,6 +36,25 @@ const currentDay = 16;
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const [selectedDay, setSelectedDay] = useState(currentDay);
+  const [posts, setPosts] = useState([]);
+
+  const fetchPosts = async () => {
+    try {
+      const res = await fetch(endpoints.posts);
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts();
+    }, [])
+  );
 
   // Animation values for each day
   const dayAnimations = useRef(
@@ -217,6 +238,7 @@ export default function CalendarScreen() {
 
         {/* Upcoming Section */}
         <View style={{ marginTop: 48, paddingHorizontal: 24 }}>
+          {/* Community Posts */}
           <Text
             style={{
               fontSize: 13,
@@ -226,10 +248,32 @@ export default function CalendarScreen() {
               marginBottom: 20,
             }}
           >
-            UPCOMING
+            COMMUNITY POSTS
           </Text>
 
-          {/* Placeholder for upcoming events */}
+          {posts.map((post) => (
+            <View
+              key={post.id}
+              style={{
+                backgroundColor: "#111",
+                padding: 16,
+                borderRadius: 16,
+                marginBottom: 16,
+                borderWidth: 1,
+                borderColor: "#222"
+              }}
+            >
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>{post.author}</Text>
+                <Text style={{ color: "#666", fontSize: 12 }}>{new Date(post.timestamp).toLocaleDateString()}</Text>
+              </View>
+              <Text style={{ color: "#ccc", fontSize: 16, lineHeight: 24 }}>{post.content}</Text>
+              <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center" }}>
+                <Text style={{ color: "#4ADE80", fontSize: 12 }}>{post.likes} likes</Text>
+              </View>
+            </View>
+          ))}
+
           <View style={{ height: 100 }} />
         </View>
       </ScrollView>

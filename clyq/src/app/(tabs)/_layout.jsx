@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, Search, QrCode } from "lucide-react-native";
+import { Home, Search, QrCode, PlusCircle } from "lucide-react-native";
 import { BlurView } from "expo-blur";
 import { Platform, StyleSheet, View } from "react-native";
 
@@ -96,6 +96,20 @@ export default function TabLayout() {
         name="explore"
         options={{
           tabBarIcon: ({ color, size }) => <Search color={color} size={26} />,
+        }}
+      />
+      <Tabs.Screen
+        name="create"
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <PlusCircle
+              color={focused ? "#fff" : "#52525b"}
+              size={34}
+              fill={focused ? "#2563EB" : "transparent"} // Fill for emphasis
+              strokeWidth={1.5}
+            />
+          ),
+          tabBarLabel: "Create",
         }}
       />
       <Tabs.Screen

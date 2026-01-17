@@ -4,49 +4,70 @@ import {
   ScrollView,
   TouchableOpacity,
   Animated,
-  Image,
 } from "react-native";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Search, TrendingUp, ArrowUpRight } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
-import { useState, useRef } from "react";
-
-const trendingEvents = [
-  {
-    id: 1,
-    category: "CODECHEF CHAPTER",
-    title: "HackOverflow 2.0",
-    tags: ["Tech", "Coding", "Free"],
-  },
-  {
-    id: 2,
-    category: "STUDENT CLUB",
-    title: "NextGen AI Summit",
-    tags: ["AI", "Workshop", "Paid"],
-  },
-];
-
-const upcomingEvents = [
-  {
-    id: 1,
-    date: "2026-01-16",
-    title: "HackOverflow 2.0",
-    description: "The biggest coding competition on campus",
-    attending: 142,
-  },
-];
+import { useState, useRef, useEffect, useMemo } from "react";
+import { endpoints, API_BASE_URL } from "../../utils/config";
+import { ActivityIndicator } from "react-native";
 
 const filterTabs = ["ALL", "TODAY", "THIS WEEK", "HACKATHONS"];
 
 export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
   const [selectedFilter, setSelectedFilter] = useState("ALL");
-  const cardScales = useRef(
-    trendingEvents.map(() => new Animated.Value(1)),
-  ).current;
-  const eventScales = useRef(
-    upcomingEvents.map(() => new Animated.Value(1)),
-  ).current;
+  const [trendingEvents, setTrendingEvents] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [serverStatus, setServerStatus] = useState("checking"); // checking, online, offline
+
+  useEffect(() => {
+    checkBackendStatus();
+  }, []);
+
+  const checkBackendStatus = async () => {
+    setIsLoading(true);
+    setServerStatus("checking");
+
+    try {
+      // 1. Check basic health
+      const healthRes = await fetch(API_BASE_URL);
+      if (healthRes.ok) {
+        setServerStatus("online");
+      } else {
+        setServerStatus("offline");
+      }
+
+      // 2. Fetch Data
+      const [trendingRes, upcomingRes] = await Promise.all([
+        fetch(endpoints.trending),
+        fetch(endpoints.upcoming)
+      ]);
+
+      if (trendingRes.ok && upcomingRes.ok) {
+        const trendingData = await trendingRes.json();
+        const upcomingData = await upcomingRes.json();
+        setTrendingEvents(trendingData);
+        setUpcomingEvents(upcomingData);
+      }
+    } catch (error) {
+      console.error("Backend Error:", error);
+      setServerStatus("offline");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const cardScales = useMemo(
+    () => trendingEvents.map(() => new Animated.Value(1)),
+    [trendingEvents]
+  );
+  const eventScales = useMemo(
+    () => upcomingEvents.map(() => new Animated.Value(1)),
+    [upcomingEvents]
+  );
 
   const animateCard = (index, toValue) => {
     Animated.spring(cardScales[index], {
@@ -87,16 +108,30 @@ export default function ExploreScreen() {
               alignItems: "center",
             }}
           >
-            <Text
-              style={{
-                fontSize: 48,
-                fontWeight: "300",
-                color: "#fff",
-                letterSpacing: -1,
-              }}
-            >
-              Explore
-            </Text>
+            <View>
+              <Text
+                style={{
+                  fontSize: 48,
+                  fontWeight: "300",
+                  color: "#fff",
+                  letterSpacing: -1,
+                }}
+              >
+                Explore
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                <View style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: serverStatus === 'online' ? '#4ADE80' : serverStatus === 'offline' ? '#EF4444' : '#EAB308',
+                  marginRight: 6
+                }} />
+                <Text style={{ color: '#888', fontSize: 12 }}>
+                  {serverStatus === 'online' ? 'Backend Connected' : serverStatus === 'offline' ? 'Backend Offline' : 'Connecting...'}
+                </Text>
+              </View>
+            </View>
             <TouchableOpacity
               style={{
                 width: 52,
@@ -108,8 +143,13 @@ export default function ExploreScreen() {
                 alignItems: "center",
               }}
               activeOpacity={0.7}
+              onPress={checkBackendStatus}
             >
-              <Search color="#fff" size={24} strokeWidth={1.5} />
+              {isLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Search color="#fff" size={24} strokeWidth={1.5} />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -319,7 +359,7 @@ export default function ExploreScreen() {
                       borderRadius: 12,
                       marginBottom: 16,
                     }}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 )}
 
